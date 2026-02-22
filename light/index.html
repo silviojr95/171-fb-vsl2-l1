@@ -312,19 +312,16 @@
 
     <!-- ===== TRACKING ===== -->
 
-    <!-- RTK Tracking -->
+    <!-- RTK: store clickid in rtkclickid-store cookie (required for VTurb play/pitch postbacks) -->
     <script>
-        var rtkcmpid = '69454e3f6f9da410427fdb3a';
-        (function (d, t) {
-            var g = d.createElement(t), s = d.getElementsByTagName(t)[0];
-            g.src = "https://www.googletagmanager.com/gtag/js?id=" + rtkcmpid; g.defer = true; g.async = true;
-            s.parentNode.insertBefore(g, s);
-            g.onload = function () {
-                window.dataLayer = window.dataLayer || [];
-                function gtag() { dataLayer.push(arguments); }
-                gtag('js', new Date()); gtag('config', rtkcmpid);
-            };
-        })(document, 'script');
+        (function () {
+            var params = new URLSearchParams(window.location.search);
+            var clickid = params.get('clickid');
+            if (clickid) {
+                document.cookie = 'rtkclickid-store=' + encodeURIComponent(clickid) + '; path=/; max-age=2592000; SameSite=Lax';
+                console.log('rtkclickid-store cookie set:', clickid);
+            }
+        })();
     </script>
 
     <!-- Clickid postback pixel -->
