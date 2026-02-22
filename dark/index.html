@@ -98,7 +98,7 @@
                             <li><span class="check">✔</span> 60 DAYS GUARANTEE</li>
                         </ul>
                         <div class="product-total">
-                            Total: <s>$1,074</s> <strong>$294</strong>
+                            Total: <s>$1,074</s> <strong>$294</strong><br>
                             <span class="free-shipping">+ FREE SHIPPING</span>
                         </div>
                         <a href="https://mahgryn.mycartpanda.com/checkout/196375334:1?afid=1HRm0GtFAh"
@@ -127,7 +127,7 @@
                             <li><span class="check">✔</span> 60 DAYS GUARANTEE</li>
                         </ul>
                         <div class="product-total">
-                            Total: <s>$537</s> <strong>$207</strong>
+                            Total: <s>$537</s> <strong>$207</strong><br>
                             <span class="free-shipping">+ FREE SHIPPING</span>
                         </div>
                         <a href="https://mahgryn.mycartpanda.com/checkout/196375333:1?afid=1HRm0GtFAh"
@@ -156,8 +156,8 @@
                             <li><span class="check">✔</span> 60 DAYS GUARANTEE</li>
                         </ul>
                         <div class="product-total">
-                            Total: <s>$358</s> <strong>$158</strong>
-                            <span class="free-shipping">+ $9.99 SHIPPING</span>
+                            Total: <s>$358</s> <strong>$158</strong><br>
+                            <span class="shipping">+$9.99 SHIPPING</span>
                         </div>
                         <a href="https://mahgryn.mycartpanda.com/checkout/196375332:1?afid=1HRm0GtFAh"
                             class="btn-buy">BUY NOW</a>
@@ -329,14 +329,18 @@
 
     <!-- Clickid postback pixel -->
     <script>
-        (function () {
-            var url = new URL(window.location.href);
-            var clickId = url.searchParams.get('click_id');
+        (() => {
+            const params = new URLSearchParams(window.location.search);
+            const clickId = params.get('clickid')
+                || (document.cookie.match('(?:^|; )rtkclickid-store=([^;]*)') || [])[1];
+
             if (clickId) {
-                var img = document.createElement('img');
-                img.src = 'https://www.getredtrk.com/click.php?lp=1&clickid=' + encodeURIComponent(clickId) + '&sum=0';
-                img.width = 1; img.height = 1; img.style.display = 'none';
+                const img = new Image(1, 1);
+                img.src = `https://skgp6.ttrk.io/postback?format=img&clickid=${encodeURIComponent(clickId)}&sum=0&type=pageview`;
                 document.body.appendChild(img);
+                console.log('pageview pixel fired with clickid:', clickId);
+            } else {
+                console.warn('clickid não encontrado na URL nem no cookie.');
             }
         })();
     </script>
@@ -344,20 +348,47 @@
     <!-- Clickid propagation -->
     <script>
         (function () {
-            try {
-                var url = new URL(window.location.href);
-                var clickId = url.searchParams.get('click_id') || url.searchParams.get('sck');
-                if (clickId) {
-                    document.querySelectorAll('a[href]').forEach(function (a) {
-                        try {
-                            var u = new URL(a.href);
-                            u.searchParams.set('click_id', clickId);
-                            u.searchParams.set('sck', clickId);
-                            a.href = u.toString();
-                        } catch (e) { }
-                    });
-                }
-            } catch (e) { }
+            var urlParams = new URLSearchParams(window.location.search);
+            var clickid = urlParams.get('clickid');
+            if (!clickid) return;
+
+            window.addEventListener('DOMContentLoaded', function () {
+                var elements = document.querySelectorAll('a, button');
+                elements.forEach(function (el) {
+                    var isLink = el.tagName.toLowerCase() === 'a';
+                    var attrName = isLink ? 'href' : 'data-href';
+                    var currentHref = el.getAttribute(attrName);
+
+                    if (
+                        !currentHref ||
+                        currentHref.indexOf('clickid=') !== -1 ||
+                        currentHref.indexOf('cid=') !== -1 ||
+                        currentHref.indexOf('click_id=') !== -1 ||
+                        currentHref.indexOf('campaignkey=') !== -1
+                    ) {
+                        return;
+                    }
+
+                    var hasQuery = currentHref.indexOf('?') !== -1;
+                    var anchorIndex = currentHref.indexOf('#');
+                    var anchor = '';
+
+                    if (anchorIndex !== -1) {
+                        anchor = currentHref.substring(anchorIndex);
+                        currentHref = currentHref.substring(0, anchorIndex);
+                    }
+
+                    var newHref = currentHref
+                        + (hasQuery ? '&' : '?')
+                        + 'clickid=' + clickid
+                        + '&cid=' + clickid
+                        + '&click_id=' + clickid
+                        + '&campaignkey=' + clickid
+                        + anchor;
+
+                    el.setAttribute(attrName, newHref);
+                });
+            });
         })();
     </script>
 
